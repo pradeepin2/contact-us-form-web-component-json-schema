@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Contact Us form web component validated using JSON schema</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ajv/8.17.1/ajv2020.bundle.js"
+        integrity="sha512-sHey9yWVIu+Vv88EJmYFuV/L+6YTrw4ucDBFTdsQNuROSvUFXQWOFCnEskKWHs1Zfrg7StVJoOMbIP7d26iosw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        li {
+            color:red;
+        }
+    </style>    
+</head>
+
+<body>
+    <div id="container" style="width:20rem;">
+        <div id="error"></div>
+        <contact-us-form>
+        </contact-us-form>
+    </div>
+    <script>
+        class ContactUsForm extends HTMLElement {
+
+            template = document.createElement("template");
+
+            constructor() {
+                super();
+                this.attachShadow({ mode: 'open' });
+                this.template.innerHTML = `
+                <form id="contact">
+                    <fieldset style="display: block;">
+                        <legend>Contact Us</legend>
+                        <p>
+                            <label for="firstname">
+                                First Name: 
+                            </label>
+                            <input type="text" id="firstname" name="firstName">
+                        </p>
+                        <p>
+                            <label for="lastname">
+                                Last Name: 
+                            </label>
+                            <input type="text" id="lastname" name="lastName">
+                        </p>
+                        <p>
+                            <label for="email">
+                            Email: 
+                            </label>
+                            <input type="email" id="email" name="email">
+                        </p>
+                        <input type="submit">
+                    </fieldset>
+                </form>
+            `;
+                this.render();
+            }
+
+            render() {
+                this.shadowRoot.appendChild(this.template.content.cloneNode(true));
+            }
+
+            connectedCallback() {
+                //Ajv generates code to turn JSON Schemas into super-fast validation functions that are efficient for v8 optimization.
+                //Initialise AJV
+                var Ajv = window.ajv2020;
+                var ajv = new Ajv({ allErrors: true, verbose: true, strict: false });
+                //Define JSON schema for contact us form
+                const contactUsSchema = {
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "$id": "https://spradeep.com/contact-us.schema.json",
+                    "title": "Contact us",
+                    "description": "Contact us",
+                    "type": "object",
+                    "properties": {
+                        "firstName": {
+                            "description": "First name of the user",
+                            "type": "string",
+                            "minLength": 3,
+                        },
+                        "lastName": {
+                            "description": "Last name of the user",
+                            "type": "string"
+                        },
+                        "email": {
+                            "description": "Email address of the user",
+                            "type": "string",
+                            "pattern": "^\\S+@\\S+\\.\\S+$",
+                            "minLength": 6,
+                            "maxLength": 127
+                        }
+                    },
+                    "required": ["firstName", "email"]
+                };
+                //Reference Contact us JSON schema to be used for validation of contact us data
+                const validate = ajv.compile(contactUsSchema)
+                const form = this.shadowRoot.querySelector('#contact');
+                //Define on submit handler for validating user input
+                form.addEventListener("submit", (event) => {
+                    var formData = new FormData(form);
+                    const valid = validate(formData);
+                    //show the errors.
+                    if (!valid) {
+                        console.log(validate.errors)
+                        event.preventDefault();
+                        let errorHTML = '<ul>';
+                        validate.errors.forEach((error)=>{
+                            errorHTML += '<li>'+error.message+'</li>';
+                        });
+                        errorHTML += '</ul>'
+                        document.getElementById("error").innerHTML = errorHTML;
+                    }
+                   
+                   
+                }, true);
+            }
+        }
+
+        customElements.define('contact-us-form', ContactUsForm);
+
+    </script>
+</body>
+
+</html>

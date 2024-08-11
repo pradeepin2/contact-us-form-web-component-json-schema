@@ -1,0 +1,12 @@
+{
+    "name": "contact-us-form-web-component-json-schema",
+    "version": "1.0.0",
+    "description": "A web server loading contact us form written in web components and validated using JSON schema",
+    "main": "server.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "start": "node server.js"
+    },
+    "author": "Pradeep Kumar Saraswathi",
+    "license": "MIT"
+  }
